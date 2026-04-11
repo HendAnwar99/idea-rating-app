@@ -1,0 +1,41 @@
+import React from 'react';
+import { ChevronRight } from 'lucide-react';
+
+const Header = () => {
+  return (
+    <div className="bg-[#091040] text-white w-full border-b border-[#091040]">
+      <div className="max-w-7xl mx-auto px-6 py-10">
+        
+        {/* Top Nav Area */}
+        <div className="flex justify-between items-center mb-16 text-sm">
+          {/* Right side in RTL (start of flex) */}
+          <div className="text-2xl font-black flex items-center leading-none tracking-tight pt-1">
+            gosi<span className="text-[#02c31e] font-sans pb-0.5">&gt;</span>
+          </div>
+
+          {/* Left side in RTL (end of flex) */}
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3 text-gray-300">
+              <span className="font-bold text-white text-base">معرض أفكار الأكلات</span>
+              <span className="text-lg pb-1">&larr;</span>
+              <span className="text-base text-gray-300">منصة الطبخ</span>
+            </div>
+            <div className="text-gray-300 font-medium tracking-wide leading-none pt-1">www.gosi.gov.sa</div>
+          </div>
+        </div>
+
+        {/* Main Content Area */}
+        <div className="max-w-3xl">
+          <h1 className="text-4xl md:text-5xl font-black mb-6 leading-tight tracking-tight">
+            منصة تقييم أفكار الأكلات
+          </h1>
+          <p className="text-blue-100/80 text-lg md:text-xl leading-relaxed max-w-2xl font-medium">
+            شارك أفكار وصفاتك وقيّم أفضل الأكلات المبتكرة
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Header;

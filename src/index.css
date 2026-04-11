@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Tajawal", "IBM Plex Sans Arabic", sans-serif;
+  --color-primary: #091040;
+  --color-accent: #02c31e;
+  --color-surface: #f5f6f8;
+  --color-text-dark: #1f2937;
+  --color-text-muted: #6b7280;
+}
+
+@layer base {
+  html, body {
+    @apply bg-surface text-text-dark font-sans text-right;
+    direction: rtl;
+  }
+}
+
+@keyframes countPop {
+  0%   { transform: scale(1);    color: #02c31e; }
+  40%  { transform: scale(1.35); color: #02c31e; }
+  100% { transform: scale(1);    color: inherit; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1);    }
+}
+
