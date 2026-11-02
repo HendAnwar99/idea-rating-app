@@ -1,15 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-// ── Initial idea data (single source of truth for base counts) ──────────────
-export const IDEAS_DATA = [
-  { id: 1, baseVotes: 156 },
-  { id: 2, baseVotes: 142 },
-  { id: 3, baseVotes: 128 },
-  { id: 4, baseVotes: 119 },
-  { id: 5, baseVotes: 107 },
-  { id: 6, baseVotes: 95  },
-];
-
 const STORAGE_KEY = 'gosiVotedIdeas';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -41,11 +31,7 @@ export function VotesProvider({ children }) {
   }, [votedIdeas]);
 
   /** Returns the effective vote count for an idea */
-  const getVoteCount = (ideaId) => {
-    const base = IDEAS_DATA.find(i => i.id === ideaId)?.baseVotes ?? 0;
-    const voted = votedIdeas[ideaId] === true;
-    return voted ? base + 1 : base;
-  };
+  const getVoteCount = (ideaId) => (votedIdeas[ideaId] === true ? 1 : 0);
 
   /** Returns whether the current user has voted for an idea */
   const hasVoted = (ideaId) => votedIdeas[ideaId] === true;

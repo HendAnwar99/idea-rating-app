@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Send, Lightbulb } from 'lucide-react';
 import Header from '../components/Header';
+import InspectorFields from '../components/InspectorFields';
+import { useIdeas } from '../context/IdeasContext';
+import { useInspectorForm } from '../hooks/useInspectorForm';
 
 const priorities = [
   { label: 'عالية', value: 'high' },
@@ -11,17 +14,19 @@ const priorities = [
 
 const AddIdeaPage = () => {
   const navigate = useNavigate();
+  const { addIdea } = useIdeas();
+  const inspectorForm = useInspectorForm();
 
   const [form, setForm] = useState({
     title: '',
     description: '',
-    user: '',
     project: '',
     priority: '',
   });
   const [showModal, setShowModal] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
 
-  const isValid = form.title.trim() && form.description.trim() && form.user.trim() && form.project.trim();
+  const isValid = form.title.trim() && form.description.trim() && form.project.trim();
 
   const handleChange = (field, value) => {
     setForm(prev => ({ ...prev, [field]: value }));
@@ -29,7 +34,19 @@ const AddIdeaPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!isValid) return;
+    if (!isValid || showModal) return;
+    const inspector = inspectorForm.validate();
+    if (!inspector) return;
+    const saved = addIdea({
+      title: form.title.trim(),
+      description: form.description.trim(),
+      project: form.project.trim(),
+      priority: form.priority,
+      inspector,
+    });
+    setSaveFailed(!saved);
+    if (!saved) return;
+    inspectorForm.remember(inspector);
     setShowModal(true);
   };
 
@@ -51,9 +68,9 @@ const AddIdeaPage = () => {
               </svg>
             </div>
 
-            <h3 className="text-2xl font-black text-[#091040] text-center">شكراً على تقييمك</h3>
+            <h3 className="text-2xl font-black text-[#091040] text-center">تم حفظ فكرتك على هذا الجهاز</h3>
             <p className="text-gray-500 text-sm text-center leading-relaxed">
-              تم إرسال فكرتك بنجاح وسيتم مشاركتها مع المجتمع لتقييمها.
+              تم حفظ الفكرة في هذا المتصفح فقط، ولن تظهر على الأجهزة الأخرى.
             </p>
 
             <button
@@ -79,23 +96,23 @@ const AddIdeaPage = () => {
 
         {/* Form Card */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-10">
-          <h2 className="text-3xl font-black text-[#091040] mb-2">إضافة فكرة أكلة جديدة</h2>
+          <h2 className="text-3xl font-black text-[#091040] mb-2">إضافة فكرة تقنية جديدة</h2>
           <p className="text-gray-500 mb-10 text-base leading-relaxed">
-            شارك أفكار وصفاتك وقيّم أفضل الأكلات المبتكرة. مساهمتك تساعدنا في تقديم أطباق مميزة.
+            شارك أفكارك التقنية في التفتيش وقيّم أفضل الحلول والابتكارات للمفتشين. مساهمتك تساعدنا في تطوير بيئة العمل.
           </p>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+          <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-8">
 
             {/* العنوان */}
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">
-                اسم الأكلة أو الفكرة <span className="text-pink-500">*</span>
+                اسم الفكرة التقنية <span className="text-pink-500">*</span>
               </label>
               <input
                 type="text"
                 value={form.title}
                 onChange={e => handleChange('title', e.target.value)}
-                placeholder="مثال: مطعم سحابي للأكلات الصحية"
+                placeholder="أدخل اسم الفكرة"
                 className="w-full border border-gray-200 rounded-xl px-5 py-3.5 text-sm text-gray-800 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#02c31e] focus:border-transparent placeholder:text-gray-400 transition-all"
               />
             </div>
@@ -103,43 +120,29 @@ const AddIdeaPage = () => {
             {/* الوصف */}
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">
-                وصف الوصفة أو الفكرة <span className="text-pink-500">*</span>
+                وصف الفكرة التقنية <span className="text-pink-500">*</span>
               </label>
               <textarea
                 value={form.description}
                 onChange={e => handleChange('description', e.target.value)}
-                placeholder="اشرح فكرتك أو وصفتك بالتفصيل. ما المكونات؟ وكيف تحضرها؟"
+                placeholder="اشرح فكرتك بالتفصيل. ما المشكلة التي تحلها وكيف تعمل؟"
                 rows={5}
                 className="w-full border border-gray-200 rounded-xl px-5 py-3.5 text-sm text-gray-800 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#02c31e] focus:border-transparent placeholder:text-gray-400 resize-none transition-all"
               />
             </div>
 
-            {/* المشروع + المستخدم — side by side*/}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
-                  نوع الأكلة <span className="text-pink-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={form.project}
-                  onChange={e => handleChange('project', e.target.value)}
-                  placeholder="مثال: حلويات، صحي..."
-                  className="w-full border border-gray-200 rounded-xl px-5 py-3.5 text-sm text-gray-800 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#02c31e] focus:border-transparent placeholder:text-gray-400 transition-all"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
-                  اسم المستخدم <span className="text-pink-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={form.user}
-                  onChange={e => handleChange('user', e.target.value)}
-                  placeholder="اسم المستخدم"
-                  className="w-full border border-gray-200 rounded-xl px-5 py-3.5 text-sm text-gray-800 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#02c31e] focus:border-transparent placeholder:text-gray-400 transition-all"
-                />
-              </div>
+            {/* المشروع */}
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">
+                المشروع أو القسم <span className="text-pink-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={form.project}
+                onChange={e => handleChange('project', e.target.value)}
+                placeholder="مثال: التفتيش الميداني، السلامة..."
+                className="w-full border border-gray-200 rounded-xl px-5 py-3.5 text-sm text-gray-800 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#02c31e] focus:border-transparent placeholder:text-gray-400 transition-all"
+              />
             </div>
 
             {/* الأولوية */}
@@ -178,22 +181,30 @@ const AddIdeaPage = () => {
               <ul className="space-y-2.5 text-blue-100 text-sm">
                 <li className="flex items-start gap-2">
                   <span className="mt-1 w-1.5 h-1.5 rounded-full bg-blue-300 shrink-0"></span>
-                  <span>كن محدداً في وصف مكونات وطريقة تحضير الأكلة</span>
+                  <span>كن محدداً في تحديد المشكلة الميدانية وآلية معالجتها</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="mt-1 w-1.5 h-1.5 rounded-full bg-blue-300 shrink-0"></span>
-                  <span>اشرح القيمة الغذائية أو الفوائد الصحية إن وجدت</span>
+                  <span>اشرح كيف تسهم التقنية في تسهيل عمل المفتش</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="mt-1 w-1.5 h-1.5 rounded-full bg-blue-300 shrink-0"></span>
-                  <span>ضع في الاعتبار مدة التحضير ومستوى الصعوبة</span>
+                  <span>اذكر الأثر المتوقع على جودة التفتيش وسرعة الإنجاز</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="mt-1 w-1.5 h-1.5 rounded-full bg-blue-300 shrink-0"></span>
-                  <span>حدد نوع الأكلة (حلويات، صحي، الخ) المناسب</span>
+                  <span>حدد القسم أو المجال المستهدف (تفتيش ميداني، سلامة، الخ)</span>
                 </li>
               </ul>
             </div>
+
+            <InspectorFields form={inspectorForm} />
+
+            {saveFailed && (
+              <p role="alert" className="text-sm font-bold text-pink-600">
+                تعذّر حفظ الفكرة في هذا المتصفح، ولم يتم تسجيلها. يرجى المحاولة مرة أخرى.
+              </p>
+            )}
 
             {/* Action Buttons */}
             <div className="flex items-center justify-between pt-2">

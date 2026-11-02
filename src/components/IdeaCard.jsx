@@ -2,16 +2,15 @@ import React from 'react';
 import { Star, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useVotes } from '../context/VotesContext';
+import { averageRating, formatDate } from '../utils/ideaHelpers';
 
-const IdeaCard = ({ idea }) => {
+const IdeaCard = ({ idea, rank }) => {
   const navigate = useNavigate();
   const { getVoteCount, hasVoted } = useVotes();
 
-  const {
-    id, rank, title, description, rating,
-    categories, author, date, commentsCount
-  } = idea;
+  const { id, title, description, project, inspector, createdAt, ratings } = idea;
 
+  const rating = Math.floor(averageRating(ratings));
   const votes = getVoteCount(id);
   const voted = hasVoted(id);
 
@@ -58,14 +57,9 @@ const IdeaCard = ({ idea }) => {
 
         {/* Categories */}
         <div className="flex flex-wrap gap-2 mb-6">
-          {categories.map((cat, idx) => (
-            <span
-              key={idx}
-              className="px-3 py-1 bg-blue-50 text-blue-600 text-xs font-semibold rounded-full"
-            >
-              {cat}
-            </span>
-          ))}
+          <span className="px-3 py-1 bg-blue-50 text-blue-600 text-xs font-semibold rounded-full">
+            {project}
+          </span>
         </div>
       </div>
 
@@ -74,18 +68,18 @@ const IdeaCard = ({ idea }) => {
 
         {/* Right side (start of flex) - Author Info */}
         <div className="flex items-center gap-3">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold ${author.color}`}>
-            {author.initials}
+          <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold bg-[#02c31e]">
+            {inspector.name.charAt(0)}
           </div>
           <div className="text-right flex flex-col">
-            <span className="text-sm font-bold text-[#091040]">{author.name}</span>
-            <span className="text-xs text-gray-400 font-medium">{date}</span>
+            <span className="text-sm font-bold text-[#091040]">{inspector.name}</span>
+            <span className="text-xs text-gray-400 font-medium">{formatDate(createdAt)}</span>
           </div>
         </div>
 
         {/* Left side (end of flex) - Comments count */}
         <div className="flex items-center text-gray-400 gap-1.5 text-sm font-medium">
-          <span>{commentsCount}</span>
+          <span>{ratings.length}</span>
           <MessageSquare className="w-4 h-4" />
         </div>
       </div>

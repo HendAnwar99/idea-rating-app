@@ -3,50 +3,26 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Star, Check, ArrowRight, Calendar, Tag, Building2, User } from 'lucide-react';
 import Header from '../components/Header';
 import CommentCard from '../components/CommentCard';
+import InspectorFields from '../components/InspectorFields';
+import { useIdeas } from '../context/IdeasContext';
 import { useVotes } from '../context/VotesContext';
+import { useInspectorForm } from '../hooks/useInspectorForm';
+import { averageRating, formatDate } from '../utils/ideaHelpers';
 
-const ideaDetails = {
-  id: 1,
-  title: 'مطعم سحابي للأكلات الصحية',
-  description: 'مشروع مطعم سحابي متخصص بتقديم وجبات صحية متكاملة بأسعار مناسبة للموظفين.',
-  tags: [
-    { label: 'أولوية عالية', color: 'bg-pink-500 text-white' },
-    { label: 'قيد المراجعة', color: 'bg-orange-500 text-white' }
-  ],
-  metadata: {
-    department: 'وجبات سريعة',
-    author: 'سارة',
-    classification: 'صحي',
-    date: '٢١ رمضان ١٤٤٧ هـ'
-  },
-  projectUsers: ['شيف', 'خبير تغذية'],
-  stats: { rating: 4.8, totalVotes: 156 },
-  comments: [
-    {
-      id: 1,
-      author: { name: 'فاطمة', initials: 'F', color: 'bg-[#02c31e]' },
-      date: '٢٣ رمضان ١٤٤٧ هـ',
-      rating: 5,
-      text: 'فكرة ممتازة! وجبات صحية ومناسبة.',
-      likes: 23
-    },
-    {
-      id: 2,
-      author: { name: 'خالد', initials: 'K', color: 'bg-green-700' },
-      date: '٢٤ رمضان ١٤٤٧ هـ',
-      rating: 4,
-      text: 'الفكرة رائعة، وأعتقد أن التركيز على المكونات العضوية سيزيد من قيمة المشروع.',
-      likes: 15
-    }
-  ]
+const priorityTags = {
+  high: { label: 'أولوية عالية', color: 'bg-pink-500 text-white' },
+  medium: { label: 'أولوية متوسطة', color: 'bg-yellow-400 text-white' },
+  low: { label: 'أولوية منخفضة', color: 'bg-blue-500 text-white' },
 };
 
 const IdeaDetailsPage = () => {
-  const { id } = useParams();
+  const { id: ideaId } = useParams();
   const navigate = useNavigate();
+  const { getIdea, addRating } = useIdeas();
   const { getVoteCount, hasVoted, toggleVote } = useVotes();
+  const inspectorForm = useInspectorForm();
 
-  const ideaId = Number(id) || 1;
+  const idea = getIdea(ideaId);
   const voted = hasVoted(ideaId);
   const totalVotes = getVoteCount(ideaId);
 
@@ -54,11 +30,18 @@ const IdeaDetailsPage = () => {
   const [comment, setComment] = useState('');
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
 
   const canSubmitRating = userRating > 0 && !ratingSubmitted;
 
   const handleSubmitRating = () => {
     if (!canSubmitRating) return;
+    const inspector = inspectorForm.validate();
+    if (!inspector) return;
+    const saved = addRating(ideaId, { stars: userRating, comment: comment.trim(), inspector });
+    setSaveFailed(!saved);
+    if (!saved) return;
+    inspectorForm.remember(inspector);
     setRatingSubmitted(true);
     setShowRatingModal(true);
   };
@@ -81,6 +64,35 @@ const IdeaDetailsPage = () => {
       />
     ));
   };
+
+  if (!idea) {
+    return (
+      <div className="min-h-screen pb-12 w-full bg-[#F5F6F8]">
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          <Header />
+        </div>
+        <div className="max-w-7xl mx-auto px-6">
+          <button
+            onClick={() => navigate('/')}
+            className="flex items-center gap-2 text-gray-500 hover:text-[#091040] mb-8 font-bold transition-colors"
+          >
+            <ArrowRight className="w-5 h-5" />
+            العودة إلى المعرض
+          </button>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
+            <h1 className="text-xl font-bold text-[#091040] mb-2">لم يتم العثور على هذه الفكرة</h1>
+            <p className="text-gray-500 text-sm leading-relaxed">
+              تُحفظ الأفكار في المتصفح الذي أُضيفت منه فقط، لذلك قد لا تظهر هنا إذا أُضيفت من جهاز آخر.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const ratingCount = idea.ratings.length;
+  const average = averageRating(idea.ratings);
+  const priorityTag = priorityTags[idea.priority];
 
   return (
     <div className="min-h-screen pb-12 w-full bg-[#F5F6F8]">
@@ -108,10 +120,10 @@ const IdeaDetailsPage = () => {
 
             <div className="text-center">
               <h3 className="text-2xl font-black text-[#091040] mb-3">
-                تم إرسال تقييمك بنجاح 🎉
+                تم حفظ تقييمك على هذا الجهاز
               </h3>
               <p className="text-gray-500 text-sm leading-relaxed">
-                شكرًا لمشاركتك رأيك، تم إضافة تقييمك وسيظهر ضمن تقييمات المستخدمين.
+                شكرًا لمشاركتك رأيك. تم حفظ التقييم في هذا المتصفح فقط، ولن يظهر على الأجهزة الأخرى.
               </p>
             </div>
 
@@ -159,20 +171,20 @@ const IdeaDetailsPage = () => {
 
             {/* Main Detail Card */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 pt-10">
-              <div className="flex gap-2 mb-6">
-                {ideaDetails.tags.map((tag, idx) => (
-                  <span key={idx} className={`px-4 py-1.5 rounded-full text-xs font-bold ${tag.color}`}>
-                    {tag.label}
+              {priorityTag && (
+                <div className="flex gap-2 mb-6">
+                  <span className={`px-4 py-1.5 rounded-full text-xs font-bold ${priorityTag.color}`}>
+                    {priorityTag.label}
                   </span>
-                ))}
-              </div>
+                </div>
+              )}
 
               <h1 className="text-4xl font-black text-[#091040] mb-6 leading-tight">
-                {ideaDetails.title}
+                {idea.title}
               </h1>
 
               <p className="text-gray-500 mb-10 text-lg leading-relaxed">
-                {ideaDetails.description}
+                {idea.description}
               </p>
 
               {/* Dark Metadata Box */}
@@ -183,8 +195,8 @@ const IdeaDetailsPage = () => {
                       <Building2 className="w-5 h-5 text-blue-300" />
                     </div>
                     <div>
-                      <div className="text-xs text-blue-200/80 mb-1">نوع الأكلة</div>
-                      <div className="font-semibold text-blue-50 text-sm">{ideaDetails.metadata.department}</div>
+                      <div className="text-xs text-blue-200/80 mb-1">القسم</div>
+                      <div className="font-semibold text-blue-50 text-sm">{idea.project}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
@@ -193,28 +205,30 @@ const IdeaDetailsPage = () => {
                     </div>
                     <div>
                       <div className="text-xs text-blue-200/80 mb-1">مقدم من</div>
-                      <div className="font-semibold text-blue-50 text-sm">{ideaDetails.metadata.author}</div>
+                      <div className="font-semibold text-blue-50 text-sm">{idea.inspector.name}</div>
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-blue-900/50 flex items-center justify-center shrink-0">
-                      <Tag className="w-5 h-5 text-blue-300" />
+                  {idea.inspector.inspectorId && (
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-full bg-blue-900/50 flex items-center justify-center shrink-0">
+                        <Tag className="w-5 h-5 text-blue-300" />
+                      </div>
+                      <div>
+                        <div className="text-xs text-blue-200/80 mb-1">الرقم التعريفي للمفتش</div>
+                        <div dir="ltr" className="font-semibold text-blue-50 text-sm text-right">{idea.inspector.inspectorId}</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="text-xs text-blue-200/80 mb-1">التصنيف</div>
-                      <div className="font-semibold text-blue-50 text-sm">{ideaDetails.metadata.classification}</div>
-                    </div>
-                  </div>
+                  )}
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-full bg-blue-900/50 flex items-center justify-center shrink-0">
                       <Calendar className="w-5 h-5 text-blue-300" />
                     </div>
                     <div>
                       <div className="text-xs text-blue-200/80 mb-1">تاريخ التقديم</div>
-                      <div className="font-semibold text-blue-50 text-sm">{ideaDetails.metadata.date}</div>
+                      <div className="font-semibold text-blue-50 text-sm">{formatDate(idea.createdAt)}</div>
                     </div>
                   </div>
                 </div>
@@ -222,9 +236,9 @@ const IdeaDetailsPage = () => {
 
               {/* Users / Projects Chips */}
               <div className="flex items-center justify-start gap-3 pt-4">
-                <span className="text-sm font-bold text-[#091040]">نوع الأكلة وصاحب الوصفة</span>
+                <span className="text-sm font-bold text-[#091040]">المشروع والمستخدم</span>
                 <div className="flex gap-2">
-                  {ideaDetails.projectUsers.map((user, idx) => (
+                  {[idea.project, idea.inspector.name].map((user, idx) => (
                     <span key={idx} className={`px-4 py-1.5 rounded-full text-xs font-bold ${idx === 0 ? 'bg-blue-50 text-blue-600' : 'bg-pink-100 text-pink-700'}`}>
                       {user}
                     </span>
@@ -236,19 +250,23 @@ const IdeaDetailsPage = () => {
             {/* Comments Section */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
               <h2 className="text-2xl font-bold text-[#091040] mb-8">
-                تقييمات المستخدمين ({ideaDetails.comments.length})
+                تقييمات المفتشين ({ratingCount})
               </h2>
-              <div className="flex flex-col">
-                {ideaDetails.comments.map(comment => (
-                  <CommentCard key={comment.id} comment={comment} />
-                ))}
-              </div>
+              {ratingCount === 0 ? (
+                <p className="text-gray-500 text-sm">لا توجد تقييمات حتى الآن</p>
+              ) : (
+                <div className="flex flex-col">
+                  {idea.ratings.map(rating => (
+                    <CommentCard key={rating.id} comment={rating} />
+                  ))}
+                </div>
+              )}
             </div>
 
           </div>
 
           {/* LEFT COLUMN: sticky sidebar */}
-          <div className="md:col-span-4 sticky top-8 flex flex-col gap-8">
+          <div className="md:col-span-4 flex flex-col gap-8">
 
             {/* Current Rating */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 flex flex-col items-center">
@@ -257,16 +275,17 @@ const IdeaDetailsPage = () => {
               <div className="text-7xl font-black text-[#091040] mb-4 tracking-tighter"
                 style={{ transition: 'all 0.3s ease' }}
                 key={totalVotes}
-              >{ideaDetails.stats.rating}</div>
+              >{ratingCount === 0 ? '—' : average.toFixed(1)}</div>
               <div className="flex gap-1.5 mb-3">
-                {renderStars(ideaDetails.stats.rating)}
+                {renderStars(average)}
               </div>
               <div className="text-sm font-medium text-gray-500 mb-8">
-                بناءً على{' '}
+                {ratingCount === 0 ? 'لا توجد تقييمات حتى الآن' : `بناءً على ${ratingCount} تقييم`}
+                {' · '}
                 <span
                   key={totalVotes}
                   className="font-bold text-[#091040] inline-block"
-                  style={{ animation: totalVotes !== ideaDetails.stats.totalVotes ? 'countPop 0.35s ease-out' : 'none' }}
+                  style={{ animation: voted ? 'countPop 0.35s ease-out' : 'none' }}
                 >
                   {totalVotes}
                 </span>
@@ -319,9 +338,19 @@ const IdeaDetailsPage = () => {
                   onChange={e => setComment(e.target.value)}
                   disabled={ratingSubmitted}
                   className="w-full border border-gray-200 rounded-xl p-4 text-sm font-medium text-gray-700 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#02c31e] focus:border-transparent resize-none h-32 transition-all placeholder:text-gray-400 disabled:opacity-60 disabled:cursor-not-allowed"
-                  placeholder="شارك رأيك حول هذه الأكلة أو الفكرة..."
+                  placeholder="شارك رأيك حول هذه الفكرة التقنية في التفتيش..."
                 />
               </div>
+
+              <div className="mb-6">
+                <InspectorFields form={inspectorForm} disabled={ratingSubmitted} />
+              </div>
+
+              {saveFailed && (
+                <p role="alert" className="text-sm font-bold text-pink-600 mb-4">
+                  تعذّر حفظ التقييم في هذا المتصفح، ولم يتم تسجيله. يرجى المحاولة مرة أخرى.
+                </p>
+              )}
 
               <button
                 onClick={handleSubmitRating}

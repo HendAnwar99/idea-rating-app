@@ -4,13 +4,16 @@ import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.jsx'
 import { VotesProvider } from './context/VotesContext.jsx'
+import { IdeasProvider } from './context/IdeasContext.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-      <VotesProvider>
-        <App />
-      </VotesProvider>
+      <IdeasProvider>
+        <VotesProvider>
+          <App />
+        </VotesProvider>
+      </IdeasProvider>
     </BrowserRouter>
   </StrictMode>,
 )
