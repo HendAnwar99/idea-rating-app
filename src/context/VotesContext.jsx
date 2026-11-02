@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-const STORAGE_KEY = 'gosiVotedIdeas';
+const STORAGE_KEY = 'ideaRatingVotedIdeas';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function loadFromStorage() {

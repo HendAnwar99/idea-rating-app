@@ -94,7 +94,7 @@ const HomePage = () => {
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
             <h3 className="text-xl font-bold text-[#091040] mb-2">لا توجد أفكار مسجلة حتى الآن</h3>
             <p className="text-gray-500 text-sm leading-relaxed">
-              ستظهر هنا الأفكار التي تتم إضافتها عبر زر «إضافة فكرة تقنية جديدة».
+              شارك أول فكرة عبر زر «إضافة فكرة تقنية جديدة».
             </p>
           </div>
         ) : (
