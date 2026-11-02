@@ -68,16 +68,16 @@ const AddIdeaPage = () => {
               </svg>
             </div>
 
-            <h3 className="text-2xl font-black text-[#091040] text-center">تم حفظ فكرتك على هذا الجهاز</h3>
+            <h3 className="text-2xl font-black text-[#091040] text-center">تم حفظ فكرتك بنجاح</h3>
             <p className="text-gray-500 text-sm text-center leading-relaxed">
-              تم حفظ الفكرة في هذا المتصفح فقط، ولن تظهر على الأجهزة الأخرى.
+              نقدّر مشاركتك، ونسعى باستمرار إلى تطوير الخدمات من خلال أفكاركم وملاحظاتكم.
             </p>
 
             <button
               onClick={() => navigate('/')}
               className="w-full bg-[#02c31e] hover:bg-green-600 text-white font-bold py-3.5 rounded-xl transition-all hover:shadow-lg hover:shadow-green-500/20 text-base"
             >
-              العودة إلى الرئيسية
+              العودة إلى معرض الأفكار
             </button>
           </div>
         </div>
