@@ -11,10 +11,25 @@ const sortOptions = ['الأكثر تصويتاً', 'الأعلى تقييماً
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const { ideas } = useIdeas();
+  const { ideas, removeIdea } = useIdeas();
   const { getVoteCount } = useVotes();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [selectedSort, setSelectedSort] = useState(sortOptions[0]);
+  const [ideaToDelete, setIdeaToDelete] = useState(null);
+  const [deleteFailed, setDeleteFailed] = useState(false);
+
+  const closeDeleteModal = () => {
+    setIdeaToDelete(null);
+    setDeleteFailed(false);
+  };
+
+  const confirmDelete = () => {
+    if (removeIdea(ideaToDelete.id)) {
+      closeDeleteModal();
+    } else {
+      setDeleteFailed(true);
+    }
+  };
 
   const newestFirst = (a, b) => b.createdAt.localeCompare(a.createdAt);
   const comparators = {
@@ -26,6 +41,50 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen pb-12 w-full bg-[#F5F6F8]">
+      {/* Delete Confirmation Modal */}
+      {ideaToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={closeDeleteModal} />
+
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-idea-title"
+            className="relative bg-white rounded-2xl shadow-2xl px-8 py-8 flex flex-col items-center gap-5 z-10 w-full max-w-md"
+          >
+            <h3 id="delete-idea-title" className="text-2xl font-black text-[#091040] text-center">حذف هذه الفكرة؟</h3>
+            <p className="font-bold text-[#091040] text-center break-words w-full">{ideaToDelete.title}</p>
+            <p className="text-gray-500 text-sm text-center leading-relaxed">
+              سيتم حذف الفكرة وتقييماتها وتعليقاتها نهائيًا من هذا المتصفح، ولا يمكن التراجع عن ذلك.
+            </p>
+
+            {deleteFailed && (
+              <p role="alert" className="text-sm font-bold text-pink-600 text-center">
+                تعذّر حذف الفكرة. يرجى المحاولة مرة أخرى.
+              </p>
+            )}
+
+            <div className="flex gap-3 w-full">
+              <button
+                type="button"
+                onClick={confirmDelete}
+                className="flex-1 bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 rounded-xl transition-colors"
+              >
+                حذف الفكرة
+              </button>
+              <button
+                type="button"
+                autoFocus
+                onClick={closeDeleteModal}
+                className="flex-1 border-2 border-gray-200 text-gray-600 font-bold py-3 rounded-xl hover:border-gray-300 hover:bg-gray-50 transition-all"
+              >
+                إلغاء
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Header />
 
       <div className="max-w-7xl mx-auto px-6 mt-8">
@@ -101,7 +160,7 @@ const HomePage = () => {
           /* Grid of Cards */
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {sortedIdeas.map((idea, index) => (
-              <IdeaCard key={idea.id} idea={idea} rank={index + 1} />
+              <IdeaCard key={idea.id} idea={idea} rank={index + 1} onDelete={setIdeaToDelete} />
             ))}
           </div>
         )}

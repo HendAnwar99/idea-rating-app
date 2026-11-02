@@ -1,10 +1,10 @@
 import React from 'react';
-import { Star, MessageSquare } from 'lucide-react';
+import { Star, MessageSquare, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useVotes } from '../context/VotesContext';
 import { averageRating, formatDate } from '../utils/ideaHelpers';
 
-const IdeaCard = ({ idea, rank }) => {
+const IdeaCard = ({ idea, rank, onDelete }) => {
   const navigate = useNavigate();
   const { getVoteCount, hasVoted } = useVotes();
 
@@ -77,10 +77,24 @@ const IdeaCard = ({ idea, rank }) => {
           </div>
         </div>
 
-        {/* Left side (end of flex) - Comments count */}
-        <div className="flex items-center text-gray-400 gap-1.5 text-sm font-medium">
-          <span>{ratings.length}</span>
-          <MessageSquare className="w-4 h-4" />
+        {/* Left side (end of flex) - Comments count and delete */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center text-gray-400 gap-1.5 text-sm font-medium">
+            <span>{ratings.length}</span>
+            <MessageSquare className="w-4 h-4" />
+          </div>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(idea);
+            }}
+            aria-label={`حذف الفكرة: ${title}`}
+            title="حذف الفكرة"
+            className="p-1.5 rounded-lg text-gray-400 hover:text-pink-600 hover:bg-pink-50 transition-colors"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
         </div>
       </div>
 

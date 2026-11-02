@@ -65,10 +65,13 @@ export function IdeasProvider({ children }) {
       )
     );
 
+  const removeIdea = (ideaId) =>
+    commit(current => current.filter(idea => idea.id !== ideaId));
+
   const getIdea = (ideaId) => ideas.find(idea => idea.id === ideaId);
 
   return (
-    <IdeasContext.Provider value={{ ideas, getIdea, addIdea, addRating }}>
+    <IdeasContext.Provider value={{ ideas, getIdea, addIdea, addRating, removeIdea }}>
       {children}
     </IdeasContext.Provider>
   );
